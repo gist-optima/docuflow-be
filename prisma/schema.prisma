@@ -9,3 +9,72 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
+model User {
+  id        Int      @id @default(autoincrement())
+  name      String
+  email     String   @unique
+  password  String
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  projects Project[] @relation("user_projects")
+
+  @@map("user")
+}
+
+model Project {
+  id          Int      @id @default(autoincrement())
+  name        String
+  description String
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  users   User[]    @relation("user_projects")
+  Version Version[]
+
+  @@map("project")
+}
+
+model Version {
+  id          Int      @id @default(autoincrement())
+  description String
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  projectId Int         @map("project_id")
+  project   Project     @relation(fields: [projectId], references: [id])
+  Container Container[]
+  Snippet   Snippet[]
+
+  @@map("version")
+}
+
+model Container {
+  id   Int    @id @default(autoincrement())
+  name String
+
+  versionId Int
+  version   Version     @relation(fields: [versionId], references: [id])
+  parentId  Int?        @map("parent_id")
+  parent    Container?  @relation("parent_child", fields: [parentId], references: [id])
+  child     Container[] @relation("parent_child")
+  Snippet   Snippet[]
+
+  @@map("container")
+}
+
+model Snippet {
+  id        Int      @default(autoincrement())
+  content   String
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  containerId Int       @map("container_id")
+  container   Container @relation(fields: [containerId], references: [id])
+  versionId   Int       @map("version_id")
+  version     Version   @relation(fields: [versionId], references: [id])
+
+  @@id([id, versionId])
+  @@map("snippet")
+}

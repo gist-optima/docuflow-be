@@ -24,7 +24,6 @@ Table user {
 Table version {
     id integer [pk, increment]
     project_id integer [ref: > project.id]
-    name varchar
     description varchar
     created_at timestamp
     updated_at timestamp
