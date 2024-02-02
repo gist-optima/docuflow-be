@@ -73,6 +73,7 @@ model Container {
 model Snippet {
   id        Int      @default(autoincrement())
   content   String
+  type      String
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
