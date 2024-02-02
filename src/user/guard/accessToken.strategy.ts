@@ -10,9 +10,7 @@ export class AccessTokenStrategy extends PassportStrategy(
   Strategy,
   'access-token',
 ) {
-  constructor(
-    @Inject('ConfigService') private readonly configService: ConfigService,
-  ) {
+  constructor(private configService: ConfigService) {
     super({
       jwtFromRequest: ExtractJwt.fromExtractors([
         (request) => {

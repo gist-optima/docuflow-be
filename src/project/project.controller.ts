@@ -18,7 +18,9 @@ import { GetUser } from 'src/user/decorator/getUser.decorator';
 import { UserInfo } from 'src/user/types/userInfo.type';
 import { CreateProjectDto } from './dto/req/createProject.dto';
 import { AddUserToProjectDto } from './dto/req/addUserToProject.dto';
+import { ApiTags } from '@nestjs/swagger';
 
+@ApiTags('project')
 @Controller('project')
 @UseGuards(AccessTokenGuard)
 @UsePipes(ValidationPipe)
