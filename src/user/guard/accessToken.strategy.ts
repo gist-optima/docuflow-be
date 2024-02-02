@@ -1,10 +1,9 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
-import { UserService } from '../user.service';
 import { ConfigService } from '@nestjs/config';
 import { Payload } from '../types/payload.type';
-import { User } from '@prisma/client';
+import { UserInfo } from '../types/userInfo.type';
 
 @Injectable()
 export class AccessTokenStrategy extends PassportStrategy(
@@ -12,7 +11,6 @@ export class AccessTokenStrategy extends PassportStrategy(
   'access-token',
 ) {
   constructor(
-    private readonly userService: UserService,
     @Inject('ConfigService') private readonly configService: ConfigService,
   ) {
     super({
@@ -28,7 +26,7 @@ export class AccessTokenStrategy extends PassportStrategy(
     });
   }
 
-  async validate(payload: Payload): Promise<User> {
-    return this.userService.vaildateUserByEmail(payload.email);
+  async validate({ email, sub }: Payload): Promise<UserInfo> {
+    return { email, id: sub };
   }
 }
