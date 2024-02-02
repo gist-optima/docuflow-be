@@ -1,4 +1,12 @@
-import { Body, Controller, Delete, Post, Res } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Post,
+  Res,
+  UsePipes,
+  ValidationPipe,
+} from '@nestjs/common';
 import { UserService } from './user.service';
 import { SignupDto } from './dto/req/signup.dto';
 import { SigninDto } from './dto/req/signin.dto';
@@ -15,6 +23,7 @@ import {
 
 @ApiTags('User')
 @Controller('user')
+@UsePipes(ValidationPipe)
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
