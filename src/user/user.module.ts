@@ -5,10 +5,13 @@ import { PrismaModule } from 'src/prisma/prisma.module';
 import { UserRepository } from './user.repository';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { AccessTokenGuard } from './guard/accessToken.guard';
+import { AccessTokenStrategy } from './guard/accessToken.strategy';
 
 @Module({
   imports: [
     PrismaModule,
+    ConfigModule,
     JwtModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
@@ -18,7 +21,13 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
       }),
     }),
   ],
-  providers: [UserService, UserRepository],
+  providers: [
+    UserService,
+    UserRepository,
+    AccessTokenGuard,
+    AccessTokenStrategy,
+  ],
   controllers: [UserController],
+  exports: [AccessTokenGuard],
 })
 export class UserModule {}

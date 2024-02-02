@@ -4,6 +4,7 @@ import { PrismaService } from './prisma/prisma.service';
 import { PrismaModule } from './prisma/prisma.module';
 import { UserModule } from './user/user.module';
 import { ConfigModule } from '@nestjs/config';
+import { ProjectModule } from './project/project.module';
 
 @Module({
   imports: [
@@ -14,6 +15,7 @@ import { ConfigModule } from '@nestjs/config';
       envFilePath:
         process.env.NODE_ENV === 'production' ? 'prod.env' : 'dev.env',
     }),
+    ProjectModule,
   ],
   controllers: [AppController],
   providers: [PrismaService],

@@ -4,6 +4,8 @@ import { SignupDto } from './dto/req/signup.dto';
 import * as bcryptjs from 'bcryptjs';
 import { JwtService } from '@nestjs/jwt';
 import { SigninDto } from './dto/req/signin.dto';
+import { Payload } from './types/payload.type';
+import { User } from '@prisma/client';
 
 @Injectable()
 export class UserService {
@@ -32,6 +34,13 @@ export class UserService {
     if (!(await bcryptjs.compare(password, user.password))) {
       throw new UnauthorizedException();
     }
-    return this.jwtService.sign({ email: user.email, sub: user.id });
+    const payload: Payload = { email: user.email, sub: user.id };
+    return this.jwtService.sign(payload);
+  }
+
+  async vaildateUserByEmail(email: string): Promise<User> {
+    return this.userRepository.findUserByEmail(email).catch(() => {
+      throw new UnauthorizedException();
+    });
   }
 }

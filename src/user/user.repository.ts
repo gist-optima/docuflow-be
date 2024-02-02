@@ -2,6 +2,7 @@ import {
   ConflictException,
   Injectable,
   InternalServerErrorException,
+  NotFoundException,
 } from '@nestjs/common';
 import { User } from '@prisma/client';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
@@ -38,8 +39,18 @@ export class UserRepository {
   }
 
   async findUserByEmail(email: string): Promise<User> {
-    return this.prismaService.user.findUniqueOrThrow({
-      where: { email },
-    });
+    return this.prismaService.user
+      .findUniqueOrThrow({
+        where: { email },
+      })
+      .catch((error) => {
+        if (
+          error instanceof PrismaClientKnownRequestError &&
+          error.code === 'P2022'
+        ) {
+          throw new NotFoundException('존재하지 않는 유저입니다.');
+        }
+        throw new InternalServerErrorException('서버 에러');
+      });
   }
 }
