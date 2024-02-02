@@ -3,6 +3,11 @@ Project docuflow {
     Note: 'Description of the project: docuflow'
 }
 
+Enum versionType {
+    MERGED
+    DRAFT
+}
+
 Table project {
     id integer [pk, increment]
     name varchar
@@ -25,6 +30,9 @@ Table version {
     id integer [pk, increment]
     project_id integer [ref: > project.id]
     description varchar
+    version_type versionType
+    parent_id integer [ref: > version.id, null]
+    merge_parent_id integer [ref: > version.id, null]
     created_at timestamp
     updated_at timestamp
 }
