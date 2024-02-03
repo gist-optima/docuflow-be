@@ -19,6 +19,7 @@ import { UserInfo } from 'src/user/types/userInfo.type';
 import { CreateProjectDto } from './dto/req/createProject.dto';
 import { AddUserToProjectDto } from './dto/req/addUserToProject.dto';
 import { ApiTags } from '@nestjs/swagger';
+import { ProjectIncludeAll } from './types/projectIncludeAll.type';
 
 @ApiTags('project')
 @Controller('project')
@@ -30,6 +31,14 @@ export class ProjectController {
   @Get()
   async getProjects(@GetUser() userInfo: UserInfo): Promise<Project[]> {
     return this.projectService.getProjects(userInfo);
+  }
+
+  @Get('/:projectId')
+  async getProjectById(
+    @Param('projectId', ParseIntPipe) projectId: number,
+    @GetUser() userInfo: UserInfo,
+  ): Promise<ProjectIncludeAll> {
+    return this.projectService.getProjectById(projectId, userInfo);
   }
 
   @Post()

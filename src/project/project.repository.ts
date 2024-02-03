@@ -1,7 +1,13 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import {
+  ForbiddenException,
+  Injectable,
+  InternalServerErrorException,
+} from '@nestjs/common';
 import { Project, User } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateProjectDto } from './dto/req/createProject.dto';
+import { ProjectIncludeAll } from './types/projectIncludeAll.type';
+import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 
 @Injectable()
 export class ProjectRepository {
@@ -19,6 +25,37 @@ export class ProjectRepository {
         },
       })
       .catch(() => {
+        throw new InternalServerErrorException();
+      });
+  }
+
+  async getProjectById(id: number, userId: number): Promise<ProjectIncludeAll> {
+    return this.prismaService.project
+      .findUniqueOrThrow({
+        where: {
+          id,
+          users: {
+            some: {
+              id: userId,
+            },
+          },
+        },
+        include: {
+          users: true,
+          Version: {
+            orderBy: {
+              createdAt: 'desc',
+            },
+          },
+        },
+      })
+      .catch((error) => {
+        if (
+          error instanceof PrismaClientKnownRequestError &&
+          error.code === 'P2022'
+        ) {
+          throw new ForbiddenException();
+        }
         throw new InternalServerErrorException();
       });
   }

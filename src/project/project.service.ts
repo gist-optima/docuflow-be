@@ -4,6 +4,7 @@ import { UserInfo } from 'src/user/types/userInfo.type';
 import { Project } from '@prisma/client';
 import { CreateProjectDto } from './dto/req/createProject.dto';
 import { AddUserToProjectDto } from './dto/req/addUserToProject.dto';
+import { ProjectIncludeAll } from './types/projectIncludeAll.type';
 
 @Injectable()
 export class ProjectService {
@@ -11,6 +12,13 @@ export class ProjectService {
 
   async getProjects({ id }: UserInfo): Promise<Project[]> {
     return this.projectRepository.getProjectsByUserId(id);
+  }
+
+  async getProjectById(
+    projectId: number,
+    userInfo: UserInfo,
+  ): Promise<ProjectIncludeAll> {
+    return this.projectRepository.getProjectById(projectId, userInfo.id);
   }
 
   async createProject(
