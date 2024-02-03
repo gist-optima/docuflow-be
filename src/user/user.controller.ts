@@ -3,9 +3,12 @@ import {
   Controller,
   Delete,
   Post,
+  Get,
+  Query,
   Res,
   UsePipes,
   ValidationPipe,
+  UseGuards,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { SignupDto } from './dto/req/signup.dto';
@@ -20,6 +23,9 @@ import {
   ApiTags,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
+import { User } from '@prisma/client';
+import { FindUserInfo } from './types/findUserInfo.type';
+import { AccessTokenGuard } from './guard/accessToken.guard';
 
 @ApiTags('User')
 @Controller('user')
@@ -71,5 +77,13 @@ export class UserController {
   @Delete('signout')
   async signout(@Res() response: Response): Promise<void> {
     response.clearCookie('accessToken');
+  }
+
+  @Get('search')
+  @UseGuards(AccessTokenGuard)
+  async searchUserByEmail(
+    @Query('keyword') keyword: string,
+  ): Promise<FindUserInfo[]> {
+    return this.userService.findUserInfoByEmail(keyword);
   }
 }

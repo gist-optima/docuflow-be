@@ -6,6 +6,7 @@ import { JwtService } from '@nestjs/jwt';
 import { SigninDto } from './dto/req/signin.dto';
 import { Payload } from './types/payload.type';
 import { User } from '@prisma/client';
+import { FindUserInfo } from './types/findUserInfo.type';
 
 @Injectable()
 export class UserService {
@@ -25,6 +26,10 @@ export class UserService {
       password: hashedPassword,
       name,
     });
+  }
+
+  async findUserInfoByEmail(email: string): Promise<FindUserInfo[]> {
+    return this.userRepository.findUserInfoListByEmailKeyword(email);
   }
 
   async signin({ email, password }: SigninDto): Promise<string> {

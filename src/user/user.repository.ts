@@ -53,4 +53,20 @@ export class UserRepository {
         throw new InternalServerErrorException('서버 에러');
       });
   }
+
+  async findUserInfoListByEmailKeyword(
+    emailKeyword: string,
+  ): Promise<Pick<User, 'id' | 'email'>[]> {
+    return this.prismaService.user.findMany({
+      where: {
+        email: {
+          contains: emailKeyword,
+        },
+      },
+      select: {
+        id: true,
+        email: true,
+      },
+    });
+  }
 }
