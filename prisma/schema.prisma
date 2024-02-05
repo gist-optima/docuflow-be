@@ -72,6 +72,7 @@ model Container {
 
 model Snippet {
   id        Int      @default(autoincrement())
+  indicator String
   content   String
   type      String
   createdAt DateTime @default(now()) @map("created_at")
