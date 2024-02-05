@@ -10,4 +10,8 @@ export class SnippetDto {
   @IsNumber()
   @IsInt()
   order: number;
+
+  @IsNumber()
+  @IsInt()
+  containerId: number;
 }

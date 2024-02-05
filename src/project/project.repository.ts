@@ -74,6 +74,12 @@ export class ProjectRepository {
               id: userId,
             },
           },
+          Version: {
+            create: {
+              description: 'First version',
+              updatedAt: new Date(),
+            },
+          },
         },
       })
       .catch(() => {
