@@ -44,7 +44,7 @@ export class ProjectRepository {
           users: true,
           Version: {
             orderBy: {
-              createdAt: 'desc',
+              createdAt: 'asc',
             },
           },
         },
