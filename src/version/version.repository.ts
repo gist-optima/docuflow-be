@@ -54,7 +54,11 @@ export class VersionRepository {
       .findUniqueOrThrow({
         where: {
           id: containerId,
-          versionId,
+          version: {
+            some: {
+              id: versionId,
+            },
+          },
         },
         include: {
           Snippet: true,
