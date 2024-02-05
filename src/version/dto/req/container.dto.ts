@@ -7,5 +7,9 @@ export class ContainerDto {
   @IsNumber()
   @IsInt()
   @IsOptional()
-  parentId: number;
+  parentId?: number;
+
+  @IsNumber()
+  @IsInt()
+  order: number;
 }

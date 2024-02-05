@@ -13,7 +13,9 @@ import { Version } from '@prisma/client';
 import { AccessTokenGuard } from 'src/user/guard/accessToken.guard';
 import { GetUser } from 'src/user/decorator/getUser.decorator';
 import { UserInfo } from 'src/user/types/userInfo.type';
+import { ApiTags } from '@nestjs/swagger';
 
+@ApiTags('version')
 @Controller('project/:projectId/version')
 @UseGuards(AccessTokenGuard)
 export class VersionController {
@@ -28,16 +30,6 @@ export class VersionController {
     return this.versionService.getVersionInfo(projectId, versionId, user);
   }
 
-  @Get(':versionId/container/:containerId')
-  async getContainerInfo(
-    @Param('projectId', ParseIntPipe) projectId: number,
-    @Param('versionId', ParseIntPipe) versionId: number,
-    @Param('containerId', ParseIntPipe) containerId: number,
-    @GetUser() user: UserInfo,
-  ): Promise<void> {
-    return;
-  }
-
   @Post()
   async createVersion(
     @Param('projectId', ParseIntPipe) projectId: number,
@@ -47,20 +39,16 @@ export class VersionController {
     return;
   }
 
-  @Patch(':versionId')
-  async updateVersion(
-    @Param('projectId', ParseIntPipe) projectId: number,
-    @Param('versionId', ParseIntPipe) versionId: number,
-    @GetUser() user: UserInfo,
-  ): Promise<void> {
+  @Post(':versionId/container')
+  async createContainer(): Promise<void> {
     return;
   }
 
-  @Patch(':versionId/container/:containerId')
-  async updateContainer(
+  @Patch(':versionId/sinppet/:snippetId')
+  async updateSnippet(
     @Param('projectId', ParseIntPipe) projectId: number,
     @Param('versionId', ParseIntPipe) versionId: number,
-    @Param('containerId', ParseIntPipe) containerId: number,
+    @Param('snippetId', ParseIntPipe) snippetId: number,
     @GetUser() user: UserInfo,
   ): Promise<void> {
     return;

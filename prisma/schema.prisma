@@ -50,38 +50,37 @@ model Version {
   mergeParentId Int?        @map("merge_parent_id")
   mergeParent   Version?    @relation("merge_parent_version", fields: [mergeParentId], references: [id])
   mergeChild    Version[]   @relation("merge_parent_version")
-  Container     Container[]
-  Snippet       Snippet[]
+  Container     Container[] @relation("version_container")
+  Snippet       Snippet[]   @relation("version_snippet")
 
   @@map("version")
 }
 
 model Container {
-  id   Int    @id @default(autoincrement())
-  name String
+  id    Int    @id @default(autoincrement())
+  name  String
+  order Int
 
-  versionId Int
-  version   Version     @relation(fields: [versionId], references: [id])
-  parentId  Int?        @map("parent_id")
-  parent    Container?  @relation("parent_child", fields: [parentId], references: [id])
-  child     Container[] @relation("parent_child")
-  Snippet   Snippet[]
+  version  Version[]   @relation("version_container")
+  parentId Int?        @map("parent_id")
+  parent   Container?  @relation("parent_child", fields: [parentId], references: [id])
+  child    Container[] @relation("parent_child")
+  Snippet  Snippet[]
 
   @@map("container")
 }
 
 model Snippet {
-  id        Int      @default(autoincrement())
+  id        Int      @id @default(autoincrement())
   indicator String
+  order     Int
   content   String
   type      String
   createdAt DateTime @default(now()) @map("created_at")
 
   containerId Int       @map("container_id")
   container   Container @relation(fields: [containerId], references: [id])
-  versionId   Int       @map("version_id")
-  version     Version   @relation(fields: [versionId], references: [id])
+  version     Version[] @relation("version_snippet")
 
-  @@id([id, versionId])
   @@map("snippet")
 }

@@ -5,12 +5,18 @@ import {
 } from '@nestjs/common';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { ExtendedVersion, FullVersion } from './types/fullVersion.type';
+import { FullContainer } from './types/fullContainer.type';
 
 @Injectable()
 export class VersionRepository {
   constructor(private readonly prismaService: PrismaService) {}
 
-  async getVersionInfo(projectId: number, versionId: number, userId: number) {
+  async getVersionInfo(
+    projectId: number,
+    versionId: number,
+    userId: number,
+  ): Promise<ExtendedVersion> {
     return this.prismaService.version
       .findUniqueOrThrow({
         where: {
@@ -36,6 +42,26 @@ export class VersionRepository {
         ) {
           throw new ForbiddenException();
         }
+        throw new InternalServerErrorException();
+      });
+  }
+
+  async getContainerById(
+    containerId: number,
+    versionId: number,
+  ): Promise<FullContainer> {
+    return this.prismaService.container
+      .findUniqueOrThrow({
+        where: {
+          id: containerId,
+          versionId,
+        },
+        include: {
+          Snippet: true,
+          child: true,
+        },
+      })
+      .catch(() => {
         throw new InternalServerErrorException();
       });
   }
