@@ -6,6 +6,7 @@ import { FullVersionWithRecursiveContainer } from './types/fullVersion.type';
 import { CreateVersionDto } from './dto/req/createVersion.dto';
 import { ContainerDto } from './dto/req/container.dto';
 import { SnippetDto } from './dto/req/snippet.dto';
+import { Version } from '@prisma/client';
 
 @Injectable()
 export class VersionService {
@@ -35,7 +36,7 @@ export class VersionService {
     parentVersionId: number,
     { description }: CreateVersionDto,
     userInfo: UserInfo,
-  ): Promise<void> {
+  ): Promise<Version> {
     const parentVersion = await this.getVersionInfo(
       projectId,
       parentVersionId,
@@ -49,7 +50,7 @@ export class VersionService {
     parentVersion.Container.forEach((container) => {
       snippetIds = snippetIds.concat(this.extractSnippet(container));
     });
-    await this.versionRepository.createVersion(
+    return this.versionRepository.createVersion(
       projectId,
       parentVersionId,
       description,
@@ -57,7 +58,6 @@ export class VersionService {
       snippetIds,
       userInfo.id,
     );
-    return;
   }
 
   async createContainer(
@@ -99,6 +99,40 @@ export class VersionService {
       throw new BadRequestException('Invalid containerId');
     }
     await this.versionRepository.createSnippet(
+      versionId,
+      content,
+      type,
+      order,
+      containerId,
+    );
+    return;
+  }
+
+  async createMergeVersion(
+    projectId: number,
+    parentVersionId: number,
+    createVersionDto: CreateVersionDto,
+    user: UserInfo,
+  ): Promise<void> {
+    const version = await this.createVersion(
+      projectId,
+      parentVersionId,
+      createVersionDto,
+      user,
+    );
+    await this.versionRepository.addMergeParent(version.id, parentVersionId);
+    return;
+  }
+
+  async updateSnippet(
+    versionId: number,
+    snippetId: number,
+    { content, type, order, containerId }: SnippetDto,
+    user: UserInfo,
+  ): Promise<void> {
+    await this.validateUser(user.id, versionId);
+    await this.versionRepository.updateSnippet(
+      snippetId,
       versionId,
       content,
       type,

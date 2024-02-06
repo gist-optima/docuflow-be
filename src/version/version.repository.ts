@@ -156,8 +156,8 @@ export class VersionRepository {
     containerIds: number[],
     snippetIds: number[],
     userId: number,
-  ): Promise<void> {
-    await this.prismaService.version
+  ): Promise<Version> {
+    return this.prismaService.version
       .create({
         data: {
           updatedAt: new Date(),
@@ -196,7 +196,6 @@ export class VersionRepository {
       .catch(() => {
         throw new InternalServerErrorException();
       });
-    return;
   }
 
   async createContainer(
@@ -275,6 +274,75 @@ export class VersionRepository {
         throw new InternalServerErrorException();
       });
     return;
+  }
+
+  async updateSnippet(
+    snippetId: number,
+    versionId: number,
+    content: string,
+    type: string,
+    order: number,
+    containerId: number,
+  ): Promise<void> {
+    const updatedSnippet = await this.prismaService.snippet
+      .update({
+        where: {
+          id: snippetId,
+        },
+        data: {
+          version: {
+            disconnect: {
+              id: versionId,
+            },
+          },
+        },
+      })
+      .catch(() => {
+        throw new InternalServerErrorException();
+      });
+    await this.prismaService.snippet.create({
+      data: {
+        content,
+        indicator: updatedSnippet.indicator,
+        type,
+        order,
+        container: {
+          connect: {
+            id: containerId,
+            version: {
+              some: {
+                id: versionId,
+              },
+            },
+          },
+        },
+        version: {
+          connect: {
+            id: versionId,
+          },
+        },
+      },
+    });
+
+    return;
+  }
+
+  async addMergeParent(
+    versionId: number,
+    parentVersionId: number,
+  ): Promise<void> {
+    await this.prismaService.version.update({
+      where: {
+        id: versionId,
+      },
+      data: {
+        mergeParent: {
+          connect: {
+            id: parentVersionId,
+          },
+        },
+      },
+    });
   }
 
   async deleteContainer(

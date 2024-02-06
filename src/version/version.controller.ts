@@ -42,12 +42,13 @@ export class VersionController {
     @GetUser() user: UserInfo,
     @Body() createVersionDto: CreateVersionDto,
   ): Promise<void> {
-    return this.versionService.createVersion(
+    await this.versionService.createVersion(
       projectId,
       parentVersionId,
       createVersionDto,
       user,
     );
+    return;
   }
 
   @Post(':versionId/merge')
@@ -74,8 +75,18 @@ export class VersionController {
   }
 
   @Patch(':versionId/snippet/:snippetId')
-  async updateSnippet(): Promise<void> {
-    return;
+  async updateSnippet(
+    @Param('versionId', ParseIntPipe) versionId: number,
+    @Param('snippetId', ParseIntPipe) snippetId: number,
+    @Body() snippetDto: SnippetDto,
+    @GetUser() user: UserInfo,
+  ): Promise<void> {
+    return this.versionService.updateSnippet(
+      versionId,
+      snippetId,
+      snippetDto,
+      user,
+    );
   }
 
   @Delete(':versionId/container/:containerId')
