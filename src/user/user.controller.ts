@@ -66,7 +66,7 @@ export class UserController {
   @Post('signin')
   async signin(
     @Body() signupDto: SigninDto,
-    @Res() response: Response,
+    @Res({ passthrough: true }) response: Response,
   ): Promise<void> {
     const accessToken = await this.userService.signin(signupDto);
     response.setHeader('Authorization', `Bearer ${accessToken}`);
@@ -77,6 +77,7 @@ export class UserController {
   @Delete('signout')
   async signout(@Res() response: Response): Promise<void> {
     response.clearCookie('accessToken');
+    return;
   }
 
   @Get('search')
