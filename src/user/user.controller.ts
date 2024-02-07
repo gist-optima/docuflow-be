@@ -75,7 +75,7 @@ export class UserController {
 
   @ApiResponse({ status: 200, description: '로그아웃 성공' })
   @Delete('signout')
-  async signout(@Res() response: Response): Promise<void> {
+  async signout(@Res({ passthrough: true }) response: Response): Promise<void> {
     response.clearCookie('accessToken');
     return;
   }
