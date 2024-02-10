@@ -9,6 +9,7 @@ async function bootstrap() {
     .setTitle('Docuflow API')
     .setDescription('Docuflow API Docs')
     .setVersion('1.0')
+    .addBearerAuth()
     .build();
   const document = SwaggerModule.createDocument(app, swaggerConfig);
   SwaggerModule.setup('api', app, document);

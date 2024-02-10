@@ -18,10 +18,11 @@ import { GetUser } from 'src/user/decorator/getUser.decorator';
 import { UserInfo } from 'src/user/types/userInfo.type';
 import { CreateProjectDto } from './dto/req/createProject.dto';
 import { AddUserToProjectDto } from './dto/req/addUserToProject.dto';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { ProjectIncludeAll } from './types/projectIncludeAll.type';
 
 @ApiTags('project')
+@ApiBearerAuth('accessToken')
 @Controller('project')
 @UseGuards(AccessTokenGuard)
 @UsePipes(ValidationPipe)

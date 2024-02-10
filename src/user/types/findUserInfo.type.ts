@@ -1,3 +1,3 @@
 import { User } from '@prisma/client';
 
-export type FindUserInfo = Pick<User, 'id' | 'email'>;
+export type FindUserInfoType = Pick<User, 'id' | 'email'>;

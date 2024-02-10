@@ -13,8 +13,9 @@ import {
 import { UserService } from './user.service';
 import { SignupDto } from './dto/req/signup.dto';
 import { SigninDto } from './dto/req/signin.dto';
-import { Response, response } from 'express';
+import { Response } from 'express';
 import {
+  ApiBearerAuth,
   ApiBody,
   ApiConflictResponse,
   ApiCreatedResponse,
@@ -23,9 +24,8 @@ import {
   ApiTags,
   ApiUnauthorizedResponse,
 } from '@nestjs/swagger';
-import { User } from '@prisma/client';
-import { FindUserInfo } from './types/findUserInfo.type';
 import { AccessTokenGuard } from './guard/accessToken.guard';
+import { FindUserInfo } from './dto/res/findUesrType.dto';
 
 @ApiTags('User')
 @Controller('user')
@@ -80,6 +80,14 @@ export class UserController {
     return;
   }
 
+  @ApiBearerAuth()
+  @ApiUnauthorizedResponse({ description: '로그인 필요' })
+  @ApiResponse({
+    status: 200,
+    description: '유저 정보 조회 성공',
+    type: FindUserInfo,
+    isArray: true,
+  })
   @Get('search')
   @UseGuards(AccessTokenGuard)
   async searchUserByEmail(

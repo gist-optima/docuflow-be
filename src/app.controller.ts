@@ -8,6 +8,7 @@ export class AppController {
   @ApiResponse({
     status: 200,
     description: 'if the server is running, it will return pong',
+    type: 'pong',
   })
   getHello(): string {
     return 'pong';
