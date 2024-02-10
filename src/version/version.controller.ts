@@ -15,6 +15,7 @@ import { AccessTokenGuard } from 'src/user/guard/accessToken.guard';
 import { GetUser } from 'src/user/decorator/getUser.decorator';
 import { UserInfo } from 'src/user/types/userInfo.type';
 import {
+  ApiBearerAuth,
   ApiForbiddenResponse,
   ApiOperation,
   ApiResponse,
@@ -26,6 +27,7 @@ import { FullVersionWithRecursiveContainer } from './types/fullVersion.type';
 import { CreateVersionDto } from './dto/req/createVersion.dto';
 
 @ApiTags('version')
+@ApiBearerAuth()
 @Controller('project/:projectId/version')
 @UseGuards(AccessTokenGuard)
 export class VersionController {
