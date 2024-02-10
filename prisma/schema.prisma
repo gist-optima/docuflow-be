@@ -39,6 +39,7 @@ model Project {
 model Version {
   id          Int      @id @default(autoincrement())
   description String
+  isCommited  Boolean  @default(false) @map("is_commited")
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
 
