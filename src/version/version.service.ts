@@ -17,17 +17,14 @@ export class VersionService {
     versionId: number,
     { id }: UserInfo,
   ): Promise<FullVersionWithRecursiveContainer> {
-    const { Container, ...rest } = await this.versionRepository.getVersionInfo(
-      projectId,
-      versionId,
-      id,
-    );
-    const completeContainer = Container.map(({ id }) => {
+    const { firstLayerContainer, ...rest } =
+      await this.versionRepository.getVersionInfo(projectId, versionId, id);
+    const completeContainer = firstLayerContainer.map(({ id }) => {
       return this.getContainer(versionId, id);
     });
     return {
       ...rest,
-      Container: await Promise.all(completeContainer),
+      firstLayerContainer: await Promise.all(completeContainer),
     };
   }
 
@@ -37,25 +34,16 @@ export class VersionService {
     { description }: CreateVersionDto,
     userInfo: UserInfo,
   ): Promise<Version> {
-    const parentVersion = await this.getVersionInfo(
-      projectId,
-      parentVersionId,
-      userInfo,
-    );
-    let containerIds: number[] = [];
-    parentVersion.Container.forEach((container) => {
-      containerIds = containerIds.concat(this.extractContainer(container));
-    });
-    let snippetIds: number[] = parentVersion.Snippet.map(({ id }) => id);
-    parentVersion.Container.forEach((container) => {
-      snippetIds = snippetIds.concat(this.extractSnippet(container));
-    });
+    const { Container, Snippet, firstLayerContainer, firstLayerSnippet } =
+      await this.getVersionInfo(projectId, parentVersionId, userInfo);
     return this.versionRepository.createVersion(
       projectId,
       parentVersionId,
       description,
-      containerIds,
-      snippetIds,
+      Container.map(({ id }) => id),
+      Snippet.map(({ id }) => id),
+      firstLayerContainer.map(({ id }) => id),
+      firstLayerSnippet.map(({ id }) => id),
       userInfo.id,
     );
   }
@@ -66,15 +54,6 @@ export class VersionService {
     userInfo: UserInfo,
   ): Promise<void> {
     await this.validateUser(userInfo.id, versionId);
-    if (parentId) {
-      const parentContainer = await this.versionRepository.getContainerById(
-        parentId,
-        versionId,
-      );
-      if (parentContainer === null) {
-        throw new BadRequestException('Invalid parentId');
-      }
-    }
     await this.versionRepository.createContainer(
       versionId,
       name,
@@ -91,13 +70,6 @@ export class VersionService {
     userInfo: UserInfo,
   ): Promise<void> {
     await this.validateUser(userInfo.id, versionId);
-    const container = await this.versionRepository.getContainerById(
-      containerId,
-      versionId,
-    );
-    if (container === null) {
-      throw new BadRequestException('Invalid containerId');
-    }
     await this.versionRepository.createSnippet(
       versionId,
       content,
@@ -192,27 +164,5 @@ export class VersionService {
 
   private async validateUser(userId: number, projectId: number): Promise<void> {
     await this.versionRepository.validateUser(userId, projectId);
-  }
-
-  private extractContainer(container: RecursiveContainer): number[] {
-    if (container.child.length === 0) {
-      return [container.id];
-    }
-    let result: number[] = [container.id];
-    container.child.forEach((child) => {
-      result = result.concat(this.extractContainer(child));
-    });
-    return result;
-  }
-
-  private extractSnippet(container: RecursiveContainer): number[] {
-    if (container.child.length === 0) {
-      return container.Snippet.map(({ id }) => id);
-    }
-    let result: number[] = container.Snippet.map(({ id }) => id);
-    container.child.forEach((child) => {
-      result = result.concat(this.extractSnippet(child));
-    });
-    return result;
   }
 }

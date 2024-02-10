@@ -1,4 +1,4 @@
-import { IsInt, IsNumber, IsString } from 'class-validator';
+import { IsInt, IsNumber, IsOptional, IsString } from 'class-validator';
 
 export class SnippetDto {
   @IsString()
@@ -13,5 +13,6 @@ export class SnippetDto {
 
   @IsNumber()
   @IsInt()
-  containerId: number;
+  @IsOptional()
+  containerId?: number;
 }

@@ -3,12 +3,7 @@ import { RecursiveContainer } from './fullContainer.type';
 
 export type FullVersion = Prisma.VersionGetPayload<{
   include: {
-    Container: {
-      include: {
-        child: true;
-        Snippet: true;
-      };
-    };
+    Container: true;
     Snippet: true;
     firstLayerContainer: true;
     firstLayerSnippet: true;
@@ -17,9 +12,9 @@ export type FullVersion = Prisma.VersionGetPayload<{
 
 export type FullVersionWithRecursiveContainer = Omit<
   FullVersion,
-  'Container'
+  'firstLayerContainer'
 > & {
-  Container: RecursiveContainer[];
+  firstLayerContainer: RecursiveContainer[];
 };
 
 export type ExtendedVersion = Prisma.VersionGetPayload<{

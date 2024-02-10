@@ -155,6 +155,8 @@ export class VersionRepository {
     description: string,
     containerIds: number[],
     snippetIds: number[],
+    firstLayerContainerIds: number[],
+    firstLayerSnippetIds: number[],
     userId: number,
   ): Promise<Version> {
     return this.prismaService.version
@@ -186,6 +188,20 @@ export class VersionRepository {
           },
           Snippet: {
             connect: snippetIds.map((id) => {
+              return {
+                id,
+              };
+            }),
+          },
+          firstLayerContainer: {
+            connect: firstLayerContainerIds.map((id) => {
+              return {
+                id,
+              };
+            }),
+          },
+          firstLayerSnippet: {
+            connect: firstLayerSnippetIds.map((id) => {
               return {
                 id,
               };
@@ -253,16 +269,26 @@ export class VersionRepository {
           indicator: uuid(),
           type,
           order,
-          container: {
-            connect: {
-              id: containerId,
-              version: {
-                some: {
-                  id: versionId,
+          ...(containerId
+            ? {
+                container: {
+                  connect: {
+                    id: containerId,
+                    version: {
+                      some: {
+                        id: versionId,
+                      },
+                    },
+                  },
                 },
-              },
-            },
-          },
+              }
+            : {
+                firstLayeredVersion: {
+                  connect: {
+                    id: versionId,
+                  },
+                },
+              }),
           version: {
             connect: {
               id: versionId,
@@ -270,7 +296,13 @@ export class VersionRepository {
           },
         },
       })
-      .catch(() => {
+      .catch((error) => {
+        if (
+          error instanceof PrismaClientKnownRequestError &&
+          error.code === 'P2022'
+        ) {
+          throw new ForbiddenException();
+        }
         throw new InternalServerErrorException();
       });
     return;
