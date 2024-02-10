@@ -149,6 +149,43 @@ export class VersionRepository {
     });
   }
 
+  async commitVersion(versionId: number, userId: number): Promise<void> {
+    await this.prismaService.version.update({
+      where: {
+        id: versionId,
+        project: {
+          users: {
+            some: {
+              id: userId,
+            },
+          },
+        },
+      },
+      data: {
+        isCommited: true,
+      },
+    });
+  }
+
+  async checkIfVersionIsCommited(versionId: number): Promise<boolean> {
+    const version = await this.prismaService.version
+      .findUniqueOrThrow({
+        where: {
+          id: versionId,
+        },
+      })
+      .catch((error) => {
+        if (
+          error instanceof PrismaClientKnownRequestError &&
+          error.code === 'P2016'
+        ) {
+          throw new ForbiddenException();
+        }
+        throw new InternalServerErrorException();
+      });
+    return version.isCommited;
+  }
+
   async createVersion(
     projectId: number,
     parentVersionId: number,

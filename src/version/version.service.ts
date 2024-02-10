@@ -54,6 +54,9 @@ export class VersionService {
     userInfo: UserInfo,
   ): Promise<void> {
     await this.validateUser(userInfo.id, versionId);
+    if (!(await this.versionRepository.checkIfVersionIsCommited(versionId))) {
+      throw new BadRequestException('Version is not commited');
+    }
     await this.versionRepository.createContainer(
       versionId,
       name,
@@ -70,6 +73,9 @@ export class VersionService {
     userInfo: UserInfo,
   ): Promise<void> {
     await this.validateUser(userInfo.id, versionId);
+    if (!(await this.versionRepository.checkIfVersionIsCommited(versionId))) {
+      throw new BadRequestException('Version is not commited');
+    }
     await this.versionRepository.createSnippet(
       versionId,
       content,
@@ -87,6 +93,9 @@ export class VersionService {
     user: UserInfo,
   ): Promise<void> {
     await this.validateUser(user.id, versionId);
+    if (!(await this.versionRepository.checkIfVersionIsCommited(versionId))) {
+      throw new BadRequestException('Version is not commited');
+    }
     await this.versionRepository.updateSnippet(
       snippetId,
       versionId,
@@ -121,6 +130,9 @@ export class VersionService {
     user: UserInfo,
   ): Promise<void> {
     await this.validateUser(user.id, versionId);
+    if (!(await this.versionRepository.checkIfVersionIsCommited(versionId))) {
+      throw new BadRequestException('Version is not commited');
+    }
     const container = await this.versionRepository.getExtendedContainerById(
       containerId,
       versionId,
@@ -142,6 +154,9 @@ export class VersionService {
     user: UserInfo,
   ): Promise<void> {
     await this.validateUser(user.id, versionId);
+    if (!(await this.versionRepository.checkIfVersionIsCommited(versionId))) {
+      throw new BadRequestException('Version is not commited');
+    }
     await this.versionRepository.deleteSnippet(snippetId, versionId);
     return;
   }
