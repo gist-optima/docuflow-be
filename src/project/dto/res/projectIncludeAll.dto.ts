@@ -42,6 +42,9 @@ class Version {
 
   @ApiProperty()
   mergeParentId: number | null;
+
+  @ApiProperty()
+  isCommited: boolean;
 }
 
 export class ProjectIncludeAll implements ProjectIncludeAllType {
