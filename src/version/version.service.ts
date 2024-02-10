@@ -80,22 +80,6 @@ export class VersionService {
     return;
   }
 
-  async createMergeVersion(
-    projectId: number,
-    parentVersionId: number,
-    createVersionDto: CreateVersionDto,
-    user: UserInfo,
-  ): Promise<void> {
-    const version = await this.createVersion(
-      projectId,
-      parentVersionId,
-      createVersionDto,
-      user,
-    );
-    await this.versionRepository.addMergeParent(version.id, parentVersionId);
-    return;
-  }
-
   async updateSnippet(
     versionId: number,
     snippetId: number,

@@ -69,6 +69,11 @@ export class VersionController {
     return;
   }
 
+  @ApiOperation({
+    summary: 'Merge version',
+    description:
+      '현재 버전을 다른 버전과 merge한다. 이때 merge가 성공하면 201을 반환한다. 여기서 AI가 사용된다. (아직 구현 안되었음)',
+  })
   @ApiResponse({ status: 201, description: 'OK' })
   @Post(':versionId/merge')
   async mergeVersion(): Promise<void> {
@@ -145,6 +150,6 @@ export class VersionController {
     @Param('snippetId', ParseIntPipe) snippetId: number,
     @GetUser() user: UserInfo,
   ): Promise<void> {
-    return;
+    return this.versionService.deleteSnippet(versionId, snippetId, user);
   }
 }

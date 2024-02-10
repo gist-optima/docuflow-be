@@ -260,7 +260,7 @@ export class VersionRepository {
     content: string,
     type: string,
     order: number,
-    containerId: number,
+    containerId?: number,
   ): Promise<void> {
     await this.prismaService.snippet
       .create({
@@ -314,7 +314,7 @@ export class VersionRepository {
     content: string,
     type: string,
     order: number,
-    containerId: number,
+    containerId?: number,
   ): Promise<void> {
     const updatedSnippet = await this.prismaService.snippet
       .update({
@@ -327,6 +327,9 @@ export class VersionRepository {
               id: versionId,
             },
           },
+          ...(containerId
+            ? {}
+            : { firstLayeredVersion: { disconnect: { id: versionId } } }),
         },
       })
       .catch(() => {
@@ -338,16 +341,20 @@ export class VersionRepository {
         indicator: updatedSnippet.indicator,
         type,
         order,
-        container: {
-          connect: {
-            id: containerId,
-            version: {
-              some: {
-                id: versionId,
+        ...(containerId
+          ? {
+              container: {
+                connect: {
+                  id: containerId,
+                  version: {
+                    some: {
+                      id: versionId,
+                    },
+                  },
+                },
               },
-            },
-          },
-        },
+            }
+          : { firstLayeredVersion: { connect: { id: versionId } } }),
         version: {
           connect: {
             id: versionId,
