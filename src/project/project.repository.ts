@@ -3,10 +3,10 @@ import {
   Injectable,
   InternalServerErrorException,
 } from '@nestjs/common';
-import { Project, User } from '@prisma/client';
+import { Project } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateProjectDto } from './dto/req/createProject.dto';
-import { ProjectIncludeAll } from './types/projectIncludeAll.type';
+import { ProjectIncludeAllType } from './types/projectIncludeAll.type';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 
 @Injectable()
@@ -29,7 +29,10 @@ export class ProjectRepository {
       });
   }
 
-  async getProjectById(id: number, userId: number): Promise<ProjectIncludeAll> {
+  async getProjectById(
+    id: number,
+    userId: number,
+  ): Promise<ProjectIncludeAllType> {
     return this.prismaService.project
       .findUniqueOrThrow({
         where: {
