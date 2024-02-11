@@ -6,6 +6,7 @@ import { UserModule } from './user/user.module';
 import { ConfigModule } from '@nestjs/config';
 import { ProjectModule } from './project/project.module';
 import { VersionModule } from './version/version.module';
+import { AiModule } from './ai/ai.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { VersionModule } from './version/version.module';
     }),
     ProjectModule,
     VersionModule,
+    AiModule,
   ],
   controllers: [AppController],
   providers: [PrismaService],
