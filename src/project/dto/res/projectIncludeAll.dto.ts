@@ -10,15 +10,6 @@ class User {
 
   @ApiProperty()
   email: string;
-
-  @ApiProperty()
-  password: string;
-
-  @ApiProperty()
-  createdAt: Date;
-
-  @ApiProperty()
-  updatedAt: Date;
 }
 
 class Version {

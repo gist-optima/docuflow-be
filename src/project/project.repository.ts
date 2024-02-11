@@ -44,7 +44,13 @@ export class ProjectRepository {
           },
         },
         include: {
-          users: true,
+          users: {
+            select: {
+              id: true,
+              email: true,
+              name: true,
+            },
+          },
           Version: {
             orderBy: {
               createdAt: 'asc',
