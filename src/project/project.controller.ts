@@ -27,7 +27,7 @@ import { ProjectIncludeAll } from './dto/res/projectIncludeAll.dto';
 import { ProjectReturn } from './dto/res/projectReturn.dto';
 
 @ApiTags('project')
-@ApiBearerAuth('accessToken')
+@ApiBearerAuth()
 @Controller('project')
 @UseGuards(AccessTokenGuard)
 @UsePipes(ValidationPipe)
