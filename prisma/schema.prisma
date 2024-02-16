@@ -63,7 +63,7 @@ model Version {
 model Container {
   id    Int    @id @default(autoincrement())
   name  String
-  order Int
+  order Float
 
   version  Version[]   @relation("version_container")
   parentId Int?        @map("parent_id")
@@ -79,7 +79,7 @@ model Container {
 model Snippet {
   id        Int      @id @default(autoincrement())
   indicator String
-  order     Int
+  order     Float
   content   String
   type      String
   createdAt DateTime @default(now()) @map("created_at")

@@ -14,6 +14,5 @@ export class ContainerDto {
 
   @ApiProperty()
   @IsNumber()
-  @IsInt()
   order: number;
 }

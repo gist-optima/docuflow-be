@@ -12,7 +12,6 @@ export class SnippetDto {
 
   @ApiProperty()
   @IsNumber()
-  @IsInt()
   order: number;
 
   @ApiPropertyOptional()

@@ -5,15 +5,23 @@ import { AxiosError } from 'axios';
 import { firstValueFrom } from 'rxjs';
 import { RegenerateQueryDto } from './dto/req/regenerateQuery.dto';
 import { GenerateQueryDto } from './dto/req/generateQuery.dto';
+import { RedisService } from 'src/redis/redis.service';
 
 @Injectable()
 export class AiService {
   constructor(
+    private readonly redisService: RedisService,
     private readonly httpService: HttpService,
     private readonly configSerivce: ConfigService,
   ) {}
 
   async generateContainer(title: string): Promise<Object> {
+    const cached = await this.redisService.get<string>(title, {
+      prefix: 'container',
+    });
+    if (cached) {
+      return JSON.parse(cached);
+    }
     const result = await firstValueFrom(
       this.httpService.get<Object>(
         this.configSerivce.getOrThrow<string>('AI_SERVER_URL') +
@@ -28,10 +36,15 @@ export class AiService {
       }
       throw new InternalServerErrorException();
     });
+    await this.redisService.set<string>(title, JSON.stringify(result.data), {
+      prefix: 'container',
+      ttl: 60 * 60 * 24 * 30,
+    });
     return result.data;
   }
 
   async generateQuery(generateQueryDto: GenerateQueryDto): Promise<Object> {
+    const cached = await this.redisService.get<string>;
     const result = await firstValueFrom(
       this.httpService.post<Object>(
         this.configSerivce.getOrThrow<string>('AI_SERVER_URL') +
