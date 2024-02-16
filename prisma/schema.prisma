@@ -84,7 +84,7 @@ model Snippet {
   type      String
   createdAt DateTime @default(now()) @map("created_at")
 
-  containerId Int        @map("container_id")
+  containerId Int?       @map("container_id")
   container   Container? @relation(fields: [containerId], references: [id])
   version     Version[]  @relation("version_snippet")
 

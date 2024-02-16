@@ -54,8 +54,8 @@ export class VersionService {
     userInfo: UserInfo,
   ): Promise<void> {
     await this.validateUser(userInfo.id, versionId);
-    if (!(await this.versionRepository.checkIfVersionIsCommited(versionId))) {
-      throw new BadRequestException('Version is not commited');
+    if (await this.versionRepository.checkIfVersionIsCommited(versionId)) {
+      throw new BadRequestException('Version is commited');
     }
     await this.versionRepository.createContainer(
       versionId,
@@ -73,8 +73,8 @@ export class VersionService {
     userInfo: UserInfo,
   ): Promise<void> {
     await this.validateUser(userInfo.id, versionId);
-    if (!(await this.versionRepository.checkIfVersionIsCommited(versionId))) {
-      throw new BadRequestException('Version is not commited');
+    if (await this.versionRepository.checkIfVersionIsCommited(versionId)) {
+      throw new BadRequestException('Version is commited');
     }
     await this.versionRepository.createSnippet(
       versionId,
@@ -93,8 +93,8 @@ export class VersionService {
     user: UserInfo,
   ): Promise<void> {
     await this.validateUser(user.id, versionId);
-    if (!(await this.versionRepository.checkIfVersionIsCommited(versionId))) {
-      throw new BadRequestException('Version is not commited');
+    if (await this.versionRepository.checkIfVersionIsCommited(versionId)) {
+      throw new BadRequestException('Version is commited');
     }
     await this.versionRepository.updateSnippet(
       snippetId,
@@ -130,8 +130,8 @@ export class VersionService {
     user: UserInfo,
   ): Promise<void> {
     await this.validateUser(user.id, versionId);
-    if (!(await this.versionRepository.checkIfVersionIsCommited(versionId))) {
-      throw new BadRequestException('Version is not commited');
+    if (await this.versionRepository.checkIfVersionIsCommited(versionId)) {
+      throw new BadRequestException('Version is ommited');
     }
     const container = await this.versionRepository.getExtendedContainerById(
       containerId,
@@ -154,8 +154,8 @@ export class VersionService {
     user: UserInfo,
   ): Promise<void> {
     await this.validateUser(user.id, versionId);
-    if (!(await this.versionRepository.checkIfVersionIsCommited(versionId))) {
-      throw new BadRequestException('Version is not commited');
+    if (await this.versionRepository.checkIfVersionIsCommited(versionId)) {
+      throw new BadRequestException('Version is commited');
     }
     await this.versionRepository.deleteSnippet(snippetId, versionId);
     return;

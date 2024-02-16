@@ -1,10 +1,12 @@
-import { Body, Controller, Get, Param, Post } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
 import { AiService } from './ai.service';
 import { ApiTags } from '@nestjs/swagger';
 import { GenerateQueryDto } from './dto/req/generateQuery.dto';
+import { AccessTokenGuard } from 'src/user/guard/accessToken.guard';
 
 @ApiTags('ai')
 @Controller('ai')
+@UseGuards(AccessTokenGuard)
 export class AiController {
   constructor(private readonly aiService: AiService) {}
 

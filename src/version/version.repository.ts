@@ -35,9 +35,6 @@ export class VersionRepository {
         this.logger.debug(`User ${userId} is not in project ${projectId}`);
         throw new ForbiddenException();
       });
-    if (project?.users.length === 0) {
-      throw new ForbiddenException();
-    }
     return;
   }
 
