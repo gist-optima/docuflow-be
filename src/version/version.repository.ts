@@ -8,7 +8,7 @@ import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { ExtendedVersion, FullVersion } from './types/fullVersion.type';
 import { ExtendedContainer, FullContainer } from './types/fullContainer.type';
-import { Version } from '@prisma/client';
+import { Container, Version } from '@prisma/client';
 import { v1 as uuid } from 'uuid';
 
 @Injectable()
@@ -270,9 +270,9 @@ export class VersionRepository {
     order: number,
     userId: number,
     parentId?: number,
-  ): Promise<void> {
+  ): Promise<Container> {
     this.logger.log('createContainer');
-    await this.prismaService.container
+    return this.prismaService.container
       .create({
         data: {
           name,
@@ -305,7 +305,6 @@ export class VersionRepository {
         this.logger.error(error);
         throw new InternalServerErrorException();
       });
-    return;
   }
 
   async createSnippet(

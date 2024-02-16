@@ -6,7 +6,7 @@ import { FullVersionWithRecursiveContainer } from './types/fullVersion.type';
 import { CreateVersionDto } from './dto/req/createVersion.dto';
 import { ContainerDto } from './dto/req/container.dto';
 import { SnippetDto } from './dto/req/snippet.dto';
-import { Version } from '@prisma/client';
+import { Container, Version } from '@prisma/client';
 
 @Injectable()
 export class VersionService {
@@ -49,30 +49,31 @@ export class VersionService {
   }
 
   async createContainer(
+    projectId: number,
     versionId: number,
     { name, parentId, order }: ContainerDto,
     userInfo: UserInfo,
-  ): Promise<void> {
-    await this.validateUser(userInfo.id, versionId);
+  ): Promise<Container> {
+    await this.validateUser(userInfo.id, projectId);
     if (await this.versionRepository.checkIfVersionIsCommited(versionId)) {
       throw new BadRequestException('Version is commited');
     }
-    await this.versionRepository.createContainer(
+    return this.versionRepository.createContainer(
       versionId,
       name,
       order,
       userInfo.id,
       parentId,
     );
-    return;
   }
 
   async createSnippet(
+    projectId: number,
     versionId: number,
     { content, type, order, containerId }: SnippetDto,
     userInfo: UserInfo,
   ): Promise<void> {
-    await this.validateUser(userInfo.id, versionId);
+    await this.validateUser(userInfo.id, projectId);
     if (await this.versionRepository.checkIfVersionIsCommited(versionId)) {
       throw new BadRequestException('Version is commited');
     }
@@ -87,12 +88,13 @@ export class VersionService {
   }
 
   async updateSnippet(
+    projectId: number,
     versionId: number,
     snippetId: number,
     { content, type, order, containerId }: SnippetDto,
     user: UserInfo,
   ): Promise<void> {
-    await this.validateUser(user.id, versionId);
+    await this.validateUser(user.id, projectId);
     if (await this.versionRepository.checkIfVersionIsCommited(versionId)) {
       throw new BadRequestException('Version is commited');
     }
@@ -125,11 +127,12 @@ export class VersionService {
   }
 
   async deleteContainer(
+    projectId: number,
     versionId: number,
     containerId: number,
     user: UserInfo,
   ): Promise<void> {
-    await this.validateUser(user.id, versionId);
+    await this.validateUser(user.id, projectId);
     if (await this.versionRepository.checkIfVersionIsCommited(versionId)) {
       throw new BadRequestException('Version is ommited');
     }
@@ -149,11 +152,12 @@ export class VersionService {
   }
 
   async deleteSnippet(
+    projectId: number,
     versionId: number,
     snippetId: number,
     user: UserInfo,
   ): Promise<void> {
-    await this.validateUser(user.id, versionId);
+    await this.validateUser(user.id, projectId);
     if (await this.versionRepository.checkIfVersionIsCommited(versionId)) {
       throw new BadRequestException('Version is commited');
     }
@@ -162,6 +166,6 @@ export class VersionService {
   }
 
   private async validateUser(userId: number, projectId: number): Promise<void> {
-    await this.versionRepository.validateUser(userId, projectId);
+    await this.versionRepository.validateUser(projectId, userId);
   }
 }

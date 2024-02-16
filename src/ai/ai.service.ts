@@ -17,6 +17,7 @@ export class AiService {
   ) {}
 
   async generateContainer(title: string): Promise<Object> {
+    // 캐시 키를 벡터로 사용하기 -> 벡터 임베딩을 사용하도록 함.
     const cached = await this.redisService.get<string>(title, {
       prefix: 'container',
     });

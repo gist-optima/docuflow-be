@@ -25,6 +25,7 @@ import { ContainerDto } from './dto/req/container.dto';
 import { SnippetDto } from './dto/req/snippet.dto';
 import { FullVersionWithRecursiveContainer } from './types/fullVersion.type';
 import { CreateVersionDto } from './dto/req/createVersion.dto';
+import { Container } from '@prisma/client';
 
 @ApiTags('version')
 @ApiBearerAuth()
@@ -91,11 +92,17 @@ export class VersionController {
   @ApiForbiddenResponse({ description: 'Forbidden' })
   @Post(':versionId/container')
   async createContainer(
+    @Param('projectId', ParseIntPipe) projectId: number,
     @Param('versionId', ParseIntPipe) versionId: number,
     @Body() containerDto: ContainerDto,
     @GetUser() user: UserInfo,
-  ): Promise<void> {
-    return this.versionService.createContainer(versionId, containerDto, user);
+  ): Promise<Container> {
+    return this.versionService.createContainer(
+      projectId,
+      versionId,
+      containerDto,
+      user,
+    );
   }
 
   @ApiOperation({
@@ -107,11 +114,17 @@ export class VersionController {
   @ApiForbiddenResponse({ description: 'Forbidden' })
   @Post(':versionId/snippet')
   async createSnippet(
+    @Param('projectId', ParseIntPipe) projectId: number,
     @Param('versionId', ParseIntPipe) versionId: number,
     @Body() snippetDto: SnippetDto,
     @GetUser() user: UserInfo,
   ): Promise<void> {
-    return this.versionService.createSnippet(versionId, snippetDto, user);
+    return this.versionService.createSnippet(
+      projectId,
+      versionId,
+      snippetDto,
+      user,
+    );
   }
 
   @ApiOperation({
@@ -122,12 +135,14 @@ export class VersionController {
   @ApiResponse({ status: 200, description: 'Created' })
   @Patch(':versionId/snippet/:snippetId')
   async updateSnippet(
+    @Param('projectId', ParseIntPipe) projectId: number,
     @Param('versionId', ParseIntPipe) versionId: number,
     @Param('snippetId', ParseIntPipe) snippetId: number,
     @Body() snippetDto: SnippetDto,
     @GetUser() user: UserInfo,
   ): Promise<void> {
     return this.versionService.updateSnippet(
+      projectId,
       versionId,
       snippetId,
       snippetDto,
@@ -138,20 +153,32 @@ export class VersionController {
   @ApiResponse({ status: 200, description: 'Deleted' })
   @Delete(':versionId/container/:containerId')
   async deleteContainer(
+    @Param('projectId', ParseIntPipe) projectId: number,
     @Param('versionId', ParseIntPipe) versionId: number,
     @Param('containerId', ParseIntPipe) containerId: number,
     @GetUser() user: UserInfo,
   ): Promise<void> {
-    return this.versionService.deleteContainer(versionId, containerId, user);
+    return this.versionService.deleteContainer(
+      projectId,
+      versionId,
+      containerId,
+      user,
+    );
   }
 
   @ApiResponse({ status: 200, description: 'Deleted' })
   @Delete(':versionId/snippet/:snippetId')
   async deleteSnippet(
+    @Param('projectId', ParseIntPipe) projectId: number,
     @Param('versionId', ParseIntPipe) versionId: number,
     @Param('snippetId', ParseIntPipe) snippetId: number,
     @GetUser() user: UserInfo,
   ): Promise<void> {
-    return this.versionService.deleteSnippet(versionId, snippetId, user);
+    return this.versionService.deleteSnippet(
+      projectId,
+      versionId,
+      snippetId,
+      user,
+    );
   }
 }
