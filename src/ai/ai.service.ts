@@ -6,6 +6,7 @@ import { firstValueFrom } from 'rxjs';
 import { RegenerateQueryDto } from './dto/req/regenerateQuery.dto';
 import { GenerateQueryDto } from './dto/req/generateQuery.dto';
 import { RedisService } from 'src/redis/redis.service';
+import { ExtractSnippetDto } from './dto/req/extractSnippet.dto';
 
 @Injectable()
 export class AiService {
@@ -43,15 +44,26 @@ export class AiService {
     return result.data;
   }
 
-  async generateQuery(generateQueryDto: GenerateQueryDto): Promise<Object> {
-    const cached = await this.redisService.get<string>;
+  async generateQuery({
+    focusedContainer,
+    guidingVector,
+  }: GenerateQueryDto): Promise<Object> {
+    const cached = await this.redisService.get<string>(
+      `${focusedContainer}_${guidingVector}`,
+      {
+        prefix: 'query',
+      },
+    );
+    if (cached) {
+      return JSON.parse(cached);
+    }
     const result = await firstValueFrom(
       this.httpService.post<Object>(
         this.configSerivce.getOrThrow<string>('AI_SERVER_URL') +
           '/query-generator',
         {
-          'focused container': generateQueryDto.focusedContainer,
-          'guiding vector': generateQueryDto.guidingVector,
+          'focused container': focusedContainer,
+          'guiding vector': guidingVector,
         },
       ),
     ).catch((error) => {
@@ -62,17 +74,39 @@ export class AiService {
       }
       throw new InternalServerErrorException();
     });
+    await this.redisService.set<string>(
+      `${focusedContainer}_${guidingVector}`,
+      JSON.stringify(result.data),
+      {
+        prefix: 'query',
+        ttl: 60 * 60 * 24 * 30,
+      },
+    );
     return result.data;
   }
 
-  async regenerateQuery(
-    regenerateQueryDto: RegenerateQueryDto,
-  ): Promise<Object> {
+  async regenerateQuery({
+    allContents,
+    focusedContainer,
+    guildingVector,
+    previousQuery,
+    shownSnippets,
+    prefferedSnippet,
+    n,
+  }: RegenerateQueryDto): Promise<Object> {
     const result = await firstValueFrom(
       this.httpService.post<Object>(
         this.configSerivce.getOrThrow<string>('AI_SERVER_URL') +
           '/query-regenerator',
-        regenerateQueryDto,
+        {
+          'all contents': allContents,
+          'focused container': focusedContainer,
+          'guiding vector': guildingVector,
+          'previous query': previousQuery,
+          'shown snippets': shownSnippets,
+          'preffered snippet': prefferedSnippet,
+          n,
+        },
       ),
     ).catch((error) => {
       if (error instanceof AxiosError) {
@@ -125,7 +159,35 @@ export class AiService {
     return result.data;
   }
 
-  async extractSnippet() {
-    return;
+  async extractSnippet({
+    articles,
+    allContents,
+    focusedContainer,
+    guildingVector,
+    prefferedSnippet,
+    shownSnippets,
+  }: ExtractSnippetDto): Promise<Object> {
+    const result = await firstValueFrom(
+      this.httpService.post<Object>(
+        this.configSerivce.getOrThrow<string>('AI_SERVER_URL') +
+          '/snippet-extractor',
+        {
+          articles,
+          'all contents': allContents,
+          'focused container': focusedContainer,
+          'guiding vector': guildingVector,
+          'preffered snippet': prefferedSnippet,
+          'shown snippets': shownSnippets,
+        },
+      ),
+    ).catch((error) => {
+      if (error instanceof AxiosError) {
+        throw new InternalServerErrorException(
+          'AI server Error: ' + error.message,
+        );
+      }
+      throw new InternalServerErrorException();
+    });
+    return result.data;
   }
 }
