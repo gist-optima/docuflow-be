@@ -2,6 +2,7 @@ import {
   ForbiddenException,
   Injectable,
   InternalServerErrorException,
+  Logger,
 } from '@nestjs/common';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 import { PrismaService } from 'src/prisma/prisma.service';
@@ -12,9 +13,11 @@ import { v1 as uuid } from 'uuid';
 
 @Injectable()
 export class VersionRepository {
+  private readonly logger = new Logger(VersionRepository.name);
   constructor(private readonly prismaService: PrismaService) {}
 
   async validateUser(projectId: number, userId: number): Promise<void> {
+    this.logger.log('validateUser');
     const project = await this.prismaService.project
       .findUniqueOrThrow({
         where: {
@@ -29,6 +32,7 @@ export class VersionRepository {
         },
       })
       .catch(() => {
+        this.logger.debug(`User ${userId} is not in project ${projectId}`);
         throw new ForbiddenException();
       });
     if (project?.users.length === 0) {
@@ -38,6 +42,7 @@ export class VersionRepository {
   }
 
   async getVersions(projectId: number, userId: number): Promise<Version[]> {
+    this.logger.log('getVersions');
     return this.prismaService.version.findMany({
       where: {
         project: {
@@ -57,6 +62,7 @@ export class VersionRepository {
     versionId: number,
     userId: number,
   ): Promise<ExtendedVersion> {
+    this.logger.log('getVersionInfo');
     return this.prismaService.version
       .findUniqueOrThrow({
         where: {
@@ -82,8 +88,10 @@ export class VersionRepository {
           error instanceof PrismaClientKnownRequestError &&
           error.code === 'P2022'
         ) {
+          this.logger.debug(`User ${userId} is not in project ${projectId}`);
           throw new ForbiddenException();
         }
+        this.logger.error(error);
         throw new InternalServerErrorException();
       });
   }
@@ -92,6 +100,7 @@ export class VersionRepository {
     containerId: number,
     versionId: number,
   ): Promise<FullContainer> {
+    this.logger.log('getContainerById');
     return this.prismaService.container
       .findUniqueOrThrow({
         where: {
@@ -115,7 +124,8 @@ export class VersionRepository {
           child: true,
         },
       })
-      .catch(() => {
+      .catch((error) => {
+        this.logger.error(error);
         throw new InternalServerErrorException();
       });
   }
@@ -124,6 +134,7 @@ export class VersionRepository {
     containerId: number,
     versionId: number,
   ): Promise<ExtendedContainer> {
+    this.logger.log('getExtendedContainerById');
     return this.prismaService.container.findUniqueOrThrow({
       where: {
         id: containerId,
@@ -150,6 +161,7 @@ export class VersionRepository {
   }
 
   async commitVersion(versionId: number, userId: number): Promise<void> {
+    this.logger.log('commitVersion');
     await this.prismaService.version.update({
       where: {
         id: versionId,
@@ -168,6 +180,7 @@ export class VersionRepository {
   }
 
   async checkIfVersionIsCommited(versionId: number): Promise<boolean> {
+    this.logger.log('checkIfVersionIsCommited');
     const version = await this.prismaService.version
       .findUniqueOrThrow({
         where: {
@@ -179,6 +192,7 @@ export class VersionRepository {
           error instanceof PrismaClientKnownRequestError &&
           error.code === 'P2016'
         ) {
+          this.logger.debug(`Version ${versionId} is not found`);
           throw new ForbiddenException();
         }
         throw new InternalServerErrorException();
@@ -196,6 +210,7 @@ export class VersionRepository {
     firstLayerSnippetIds: number[],
     userId: number,
   ): Promise<Version> {
+    this.logger.log('createVersion');
     return this.prismaService.version
       .create({
         data: {
@@ -247,6 +262,7 @@ export class VersionRepository {
         },
       })
       .catch(() => {
+        this.logger.error('createVersion');
         throw new InternalServerErrorException();
       });
   }
@@ -258,6 +274,7 @@ export class VersionRepository {
     userId: number,
     parentId?: number,
   ): Promise<void> {
+    this.logger.log('createContainer');
     await this.prismaService.container
       .create({
         data: {
@@ -285,8 +302,10 @@ export class VersionRepository {
           error instanceof PrismaClientKnownRequestError &&
           error.code === 'P2022'
         ) {
+          this.logger.debug(`User ${userId} is not in project`);
           throw new ForbiddenException();
         }
+        this.logger.error(error);
         throw new InternalServerErrorException();
       });
     return;
@@ -299,6 +318,7 @@ export class VersionRepository {
     order: number,
     containerId?: number,
   ): Promise<void> {
+    this.logger.log('createSnippet');
     await this.prismaService.snippet
       .create({
         data: {
@@ -338,8 +358,10 @@ export class VersionRepository {
           error instanceof PrismaClientKnownRequestError &&
           error.code === 'P2022'
         ) {
+          this.logger.debug(`User is not in project`);
           throw new ForbiddenException();
         }
+        this.logger.error(error);
         throw new InternalServerErrorException();
       });
     return;
@@ -353,6 +375,7 @@ export class VersionRepository {
     order: number,
     containerId?: number,
   ): Promise<void> {
+    this.logger.log('updateSnippet');
     const updatedSnippet = await this.prismaService.snippet
       .update({
         where: {
@@ -370,6 +393,7 @@ export class VersionRepository {
         },
       })
       .catch(() => {
+        this.logger.error('updateSnippet');
         throw new InternalServerErrorException();
       });
     await this.prismaService.snippet.create({
@@ -407,6 +431,7 @@ export class VersionRepository {
     versionId: number,
     parentVersionId: number,
   ): Promise<void> {
+    this.logger.log('addMergeParent');
     await this.prismaService.version.update({
       where: {
         id: versionId,
@@ -426,6 +451,7 @@ export class VersionRepository {
     versionId: number,
     isFirstLayer: boolean,
   ): Promise<void> {
+    this.logger.log('deleteContainer');
     await this.prismaService.container.update({
       where: {
         id: containerId,
@@ -444,6 +470,7 @@ export class VersionRepository {
   }
 
   async deleteSnippet(snippetId: number, versionId: number): Promise<void> {
+    this.logger.log('deleteSnippet');
     await this.prismaService.snippet.update({
       where: {
         id: snippetId,

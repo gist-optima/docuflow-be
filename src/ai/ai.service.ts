@@ -17,7 +17,7 @@ export class AiService {
     const result = await firstValueFrom(
       this.httpService.get<Object>(
         this.configSerivce.getOrThrow<string>('AI_SERVER_URL') +
-          '/generate-container/' +
+          '/container-generator/' +
           title,
       ),
     ).catch((error) => {
@@ -36,7 +36,10 @@ export class AiService {
       this.httpService.post<Object>(
         this.configSerivce.getOrThrow<string>('AI_SERVER_URL') +
           '/query-generator',
-        generateQueryDto,
+        {
+          'focused container': generateQueryDto.focusedContainer,
+          'guiding vector': generateQueryDto.guidingVector,
+        },
       ),
     ).catch((error) => {
       if (error instanceof AxiosError) {
