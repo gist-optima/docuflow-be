@@ -2,6 +2,7 @@ import { HttpService } from '@nestjs/axios';
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { AxiosError } from 'axios';
+import { v4 as uuid } from 'uuid';
 import { firstValueFrom } from 'rxjs';
 import { RegenerateQueryDto } from './dto/req/regenerateQuery.dto';
 import { GenerateQueryDto } from './dto/req/generateQuery.dto';
@@ -17,12 +18,14 @@ export class AiService {
   ) {}
 
   async generateContainer(title: string): Promise<Object> {
-    // 캐시 키를 벡터로 사용하기 -> 벡터 임베딩을 사용하도록 함.
-    const cached = await this.redisService.get<string>(title, {
-      prefix: 'container',
-    });
-    if (cached) {
-      return JSON.parse(cached);
+    const cachedId = await this.getVector(title);
+    if (cachedId.length !== 0) {
+      const cached = await this.redisService.get<string>(cachedId[0], {
+        prefix: 'container',
+      });
+      if (cached) {
+        return JSON.parse(cached);
+      }
     }
     const result = await firstValueFrom(
       this.httpService.get<Object>(
@@ -38,7 +41,14 @@ export class AiService {
       }
       throw new InternalServerErrorException();
     });
-    await this.redisService.set<string>(title, JSON.stringify(result.data), {
+    let id: string;
+    if (cachedId.length !== 0) {
+      id = cachedId[0];
+    } else {
+      id = uuid();
+      await this.setVector(id, title);
+    }
+    await this.redisService.set<string>(id, JSON.stringify(result.data), {
       prefix: 'container',
       ttl: 60 * 60 * 24 * 30,
     });
@@ -49,15 +59,23 @@ export class AiService {
     focusedContainer,
     guidingVector,
   }: GenerateQueryDto): Promise<Object> {
-    const cached = await this.redisService.get<string>(
-      `${focusedContainer}_${guidingVector}`,
-      {
-        prefix: 'query',
-      },
-    );
-    if (cached) {
-      return JSON.parse(cached);
+    const cachedfocusedContainer = await this.getVector(focusedContainer);
+    const cachedguidingVector = await this.getVector(guidingVector);
+    if (
+      cachedfocusedContainer.length !== 0 &&
+      cachedguidingVector.length !== 0
+    ) {
+      const cached = await this.redisService.get<string>(
+        `${cachedfocusedContainer[0]}_${cachedguidingVector[0]}`,
+        {
+          prefix: 'query',
+        },
+      );
+      if (cached) {
+        return JSON.parse(cached);
+      }
     }
+
     const result = await firstValueFrom(
       this.httpService.post<Object>(
         this.configSerivce.getOrThrow<string>('AI_SERVER_URL') +
@@ -75,8 +93,22 @@ export class AiService {
       }
       throw new InternalServerErrorException();
     });
+
+    let containerId: string, vectorId: string;
+    if (cachedfocusedContainer.length !== 0) {
+      containerId = cachedfocusedContainer[0];
+    } else {
+      containerId = uuid();
+      await this.setVector(containerId, focusedContainer);
+    }
+    if (cachedguidingVector.length !== 0) {
+      vectorId = cachedguidingVector[0];
+    } else {
+      vectorId = uuid();
+      await this.setVector(vectorId, guidingVector);
+    }
     await this.redisService.set<string>(
-      `${focusedContainer}_${guidingVector}`,
+      `${containerId}_${vectorId}`,
       JSON.stringify(result.data),
       {
         prefix: 'query',
@@ -190,5 +222,50 @@ export class AiService {
       throw new InternalServerErrorException();
     });
     return result.data;
+  }
+
+  async getVector(text: string): Promise<string[]> {
+    const result = await firstValueFrom(
+      this.httpService.get<string[]>(
+        this.configSerivce.getOrThrow<string>('AI_SERVER_URL') + '/soft-cache',
+        {
+          params: {
+            query: text,
+          },
+        },
+      ),
+    ).catch((error) => {
+      if (error instanceof AxiosError) {
+        throw new InternalServerErrorException(
+          'AI server Error: ' + error.message,
+        );
+      }
+      console.log('error', error);
+      throw new InternalServerErrorException();
+    });
+    return result.data;
+  }
+
+  async setVector(id: string, text: string): Promise<void> {
+    await firstValueFrom(
+      this.httpService.post(
+        this.configSerivce.getOrThrow<string>('AI_SERVER_URL') + '/soft-cache',
+        {
+          vectors: [
+            {
+              id: id,
+              vector: text,
+            },
+          ],
+        },
+      ),
+    ).catch((error) => {
+      if (error instanceof AxiosError) {
+        throw new InternalServerErrorException(
+          'AI server Error: ' + error.message,
+        );
+      }
+      throw new InternalServerErrorException();
+    });
   }
 }
