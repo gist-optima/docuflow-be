@@ -3,7 +3,7 @@ import {
   Injectable,
   InternalServerErrorException,
 } from '@nestjs/common';
-import { Project } from '@prisma/client';
+import { Project, PullRequest } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateProjectDto } from './dto/req/createProject.dto';
 import { ProjectIncludeAllType } from './types/projectIncludeAll.type';
@@ -51,7 +51,16 @@ export class ProjectRepository {
               name: true,
             },
           },
+          PullRequest: true,
           Version: {
+            include: {
+              child: {
+                select: { id: true },
+              },
+              mergeChild: {
+                select: { id: true },
+              },
+            },
             orderBy: {
               createdAt: 'asc',
             },
@@ -86,6 +95,7 @@ export class ProjectRepository {
           Version: {
             create: {
               description: 'First version',
+              tag: 'main',
               updatedAt: new Date(),
             },
           },
@@ -95,6 +105,40 @@ export class ProjectRepository {
         throw new InternalServerErrorException();
       });
     return;
+  }
+
+  async createPR(
+    projectId: number,
+    {
+      title,
+      description,
+      fromTag,
+      toTag,
+    }: Pick<PullRequest, 'title' | 'description' | 'fromTag' | 'toTag'>,
+    userId: number,
+  ): Promise<void> {
+    await this.prismaService.pullRequest
+      .create({
+        data: {
+          title,
+          description,
+          fromTag,
+          toTag,
+          project: {
+            connect: {
+              id: projectId,
+              users: {
+                some: {
+                  id: userId,
+                },
+              },
+            },
+          },
+        },
+      })
+      .catch(() => {
+        throw new InternalServerErrorException();
+      });
   }
 
   async modifyProject(projectId: number, description: string): Promise<void> {

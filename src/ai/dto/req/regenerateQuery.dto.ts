@@ -20,7 +20,7 @@ export class RegenerateQueryDto {
   previousQuery: string;
 
   @ApiProperty()
-  @IsString()
+  @IsString({ each: true })
   @IsArray()
   shownSnippets: string[];
 

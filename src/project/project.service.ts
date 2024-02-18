@@ -5,6 +5,7 @@ import { Project } from '@prisma/client';
 import { CreateProjectDto } from './dto/req/createProject.dto';
 import { AddUserToProjectDto } from './dto/req/addUserToProject.dto';
 import { ProjectIncludeAllType } from './types/projectIncludeAll.type';
+import { CreatePRDto } from './dto/req/createPR.dto';
 
 @Injectable()
 export class ProjectService {
@@ -26,6 +27,14 @@ export class ProjectService {
     userInfo: UserInfo,
   ): Promise<void> {
     return this.projectRepository.createProject(createProjectDto, userInfo.id);
+  }
+
+  async createPR(
+    projectId: number,
+    dto: CreatePRDto,
+    userInfo: UserInfo,
+  ): Promise<void> {
+    return this.projectRepository.createPR(projectId, dto, userInfo.id);
   }
 
   async modifyProject(

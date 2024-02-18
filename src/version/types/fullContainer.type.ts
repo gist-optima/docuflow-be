@@ -1,4 +1,4 @@
-import { Prisma } from '@prisma/client';
+import { Prisma, Snippet } from '@prisma/client';
 
 export type FullContainer = Prisma.ContainerGetPayload<{
   include: {
@@ -9,6 +9,18 @@ export type FullContainer = Prisma.ContainerGetPayload<{
 
 export type RecursiveContainer = Omit<FullContainer, 'child'> & {
   child: RecursiveContainer[];
+};
+
+export type DiffSnippet = Snippet & {
+  version: number;
+};
+
+export type DiffRecursiveContainer = Omit<
+  FullContainer,
+  'child' | 'snippet'
+> & {
+  Snippet: DiffSnippet[];
+  child: DiffRecursiveContainer[];
 };
 
 export type ExtendedContainer = Prisma.ContainerGetPayload<{

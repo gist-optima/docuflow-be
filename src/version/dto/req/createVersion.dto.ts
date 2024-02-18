@@ -6,4 +6,9 @@ export class CreateVersionDto {
   @IsString()
   @IsNotEmpty()
   description: string;
+
+  @ApiProperty()
+  @IsString()
+  @IsNotEmpty()
+  tag: string;
 }

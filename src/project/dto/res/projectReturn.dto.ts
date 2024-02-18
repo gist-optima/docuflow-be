@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { Project } from '@prisma/client';
+import { Project, PullRequest } from '@prisma/client';
 
 export class ProjectReturn implements Project {
   @ApiProperty()

@@ -1,7 +1,10 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { VersionRepository } from './version.repository';
 import { UserInfo } from 'src/user/types/userInfo.type';
-import { RecursiveContainer } from './types/fullContainer.type';
+import {
+  DiffRecursiveContainer,
+  RecursiveContainer,
+} from './types/fullContainer.type';
 import { FullVersionWithRecursiveContainer } from './types/fullVersion.type';
 import { CreateVersionDto } from './dto/req/createVersion.dto';
 import { ContainerDto } from './dto/req/container.dto';
@@ -31,7 +34,7 @@ export class VersionService {
   async createVersion(
     projectId: number,
     parentVersionId: number,
-    { description }: CreateVersionDto,
+    { description, tag }: CreateVersionDto,
     userInfo: UserInfo,
   ): Promise<Version> {
     const { Container, Snippet, firstLayerContainer, firstLayerSnippet } =
@@ -40,12 +43,23 @@ export class VersionService {
       projectId,
       parentVersionId,
       description,
+      tag,
       Container.map(({ id }) => id),
       Snippet.map(({ id }) => id),
       firstLayerContainer.map(({ id }) => id),
       firstLayerSnippet.map(({ id }) => id),
       userInfo.id,
     );
+  }
+
+  async mergeVersion(
+    projectId: number,
+    versionId: number,
+    mergeParentId: number,
+    user: UserInfo,
+  ): Promise<void> {
+    await this.validateUser(user.id, projectId);
+    return this.versionRepository.mergeVersion(mergeParentId, versionId);
   }
 
   async createContainer(
@@ -109,6 +123,17 @@ export class VersionService {
     return;
   }
 
+  async getDiffContainer(
+    projectId: number,
+    versionId: number,
+    mergeVersionId: number,
+    containerId: number,
+    user: UserInfo,
+  ): Promise<DiffRecursiveContainer> {
+    await this.validateUser(user.id, projectId);
+    return this.diffContainer(versionId, mergeVersionId, containerId);
+  }
+
   private async getContainer(
     versionId: number,
     containerId: number,
@@ -123,6 +148,44 @@ export class VersionService {
     return {
       ...rest,
       child: await Promise.all(completeChild),
+    };
+  }
+
+  private async diffContainer(
+    versionId: number,
+    mergeVersionId: number,
+    containerId: number,
+  ): Promise<DiffRecursiveContainer> {
+    const container = await this.versionRepository.getContainerById(
+      containerId,
+      versionId,
+    );
+    const mergeContainer = await this.versionRepository.getContainerById(
+      containerId,
+      mergeVersionId,
+    );
+    const allChild = [
+      ...new Set([...container.child, ...mergeContainer.child]),
+    ];
+    const allSnippet = [
+      ...new Set([
+        ...container.Snippet.map(({ ...all }) => ({
+          ...all,
+          version: versionId,
+        })),
+        ...mergeContainer.Snippet.map(({ ...all }) => ({
+          ...all,
+          version: mergeVersionId,
+        })),
+      ]),
+    ];
+    const completeChild = allChild.map(({ id }) => {
+      return this.diffContainer(versionId, mergeVersionId, id);
+    });
+    return {
+      ...container,
+      child: await Promise.all(completeChild),
+      Snippet: allSnippet,
     };
   }
 

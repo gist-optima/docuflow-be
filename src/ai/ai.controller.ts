@@ -7,6 +7,8 @@ import {
   UseGuards,
   Query,
   ParseIntPipe,
+  UsePipes,
+  ValidationPipe,
 } from '@nestjs/common';
 import { AiService } from './ai.service';
 import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
@@ -14,9 +16,12 @@ import { GenerateQueryDto } from './dto/req/generateQuery.dto';
 import { AccessTokenGuard } from 'src/user/guard/accessToken.guard';
 import { RegenerateQueryDto } from './dto/req/regenerateQuery.dto';
 import { ExtractSnippetDto } from './dto/req/extractSnippet.dto';
+import { ModulizerDto } from './dto/req/modulizer.dto';
+import { LiquidfierDto } from './dto/req/liquifier.dto';
 
 @ApiTags('ai')
 @Controller('ai')
+@UsePipes(ValidationPipe)
 @UseGuards(AccessTokenGuard)
 export class AiController {
   constructor(private readonly aiService: AiService) {}
@@ -52,5 +57,17 @@ export class AiController {
   @Post('extract-snippet')
   async extractSnippet(@Body() body: ExtractSnippetDto): Promise<Object> {
     return this.aiService.extractSnippet(body);
+  }
+
+  @ApiBearerAuth()
+  @Post('modulizer')
+  async modulizer(@Body() body: ModulizerDto): Promise<Object> {
+    return this.aiService.useModulizer(body);
+  }
+
+  @ApiBearerAuth()
+  @Post('liquifier')
+  async liquifier(@Body() body: LiquidfierDto): Promise<Object> {
+    return this.aiService.useliquifier(body);
   }
 }

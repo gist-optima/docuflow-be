@@ -197,10 +197,27 @@ export class VersionRepository {
     return version.isCommited;
   }
 
+  async mergeVersion(mergeParentId, versionId): Promise<void> {
+    this.logger.log('mergerVersuion');
+    await this.prismaService.version.update({
+      where: {
+        id: versionId,
+      },
+      data: {
+        mergeParent: {
+          connect: {
+            id: mergeParentId,
+          },
+        },
+      },
+    });
+  }
+
   async createVersion(
     projectId: number,
     parentVersionId: number,
     description: string,
+    tag: string,
     containerIds: number[],
     snippetIds: number[],
     firstLayerContainerIds: number[],
@@ -213,6 +230,7 @@ export class VersionRepository {
         data: {
           updatedAt: new Date(),
           description,
+          tag,
           parent: {
             connect: {
               id: parentVersionId,

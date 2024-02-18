@@ -25,6 +25,7 @@ import {
 } from '@nestjs/swagger';
 import { ProjectIncludeAll } from './dto/res/projectIncludeAll.dto';
 import { ProjectReturn } from './dto/res/projectReturn.dto';
+import { CreatePRDto } from './dto/req/createPR.dto';
 
 @ApiTags('project')
 @ApiBearerAuth()
@@ -115,5 +116,16 @@ export class ProjectController {
       userId,
       userInfo,
     );
+  }
+
+  @ApiResponse({ status: 201, description: 'Created' })
+  @ApiForbiddenResponse({ description: '유저의 권한이 없음' })
+  @Post('/:projectId/pullrequest')
+  async createPR(
+    @Param('projectId', ParseIntPipe) projectId: number,
+    @Body() dto: CreatePRDto,
+    @GetUser() userInfo: UserInfo,
+  ): Promise<void> {
+    return this.projectService.createPR(projectId, dto, userInfo);
   }
 }

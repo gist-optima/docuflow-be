@@ -8,6 +8,8 @@ import { RegenerateQueryDto } from './dto/req/regenerateQuery.dto';
 import { GenerateQueryDto } from './dto/req/generateQuery.dto';
 import { RedisService } from 'src/redis/redis.service';
 import { ExtractSnippetDto } from './dto/req/extractSnippet.dto';
+import { ModulizerDto } from './dto/req/modulizer.dto';
+import { LiquidfierDto } from './dto/req/liquifier.dto';
 
 @Injectable()
 export class AiService {
@@ -153,6 +155,12 @@ export class AiService {
   }
 
   async useGoogleSearch(query: string, n: number): Promise<Object> {
+    const cashed = await this.redisService.get<string>(`${query}_${n}`, {
+      prefix: 'google',
+    });
+    if (cashed) {
+      return JSON.parse(cashed);
+    }
     const result = await firstValueFrom(
       this.httpService.get<Object>(
         this.configSerivce.getOrThrow<string>('AI_SERVER_URL') +
@@ -169,10 +177,24 @@ export class AiService {
       }
       throw new InternalServerErrorException();
     });
+    this.redisService.set<string>(
+      `${query}_${n}`,
+      JSON.stringify(result.data),
+      {
+        prefix: 'google',
+        ttl: 60 * 60 * 24 * 30,
+      },
+    );
     return result.data;
   }
 
   async useVectorSearch(query: string, n: number): Promise<Object> {
+    const cashed = await this.redisService.get<string>(`${query}_${n}`, {
+      prefix: 'vector',
+    });
+    if (cashed) {
+      return JSON.parse(cashed);
+    }
     const result = await firstValueFrom(
       this.httpService.get<Object>(
         this.configSerivce.getOrThrow<string>('AI_SERVER_URL') +
@@ -189,6 +211,14 @@ export class AiService {
       }
       throw new InternalServerErrorException();
     });
+    this.redisService.set<string>(
+      `${query}_${n}`,
+      JSON.stringify(result.data),
+      {
+        prefix: 'vector',
+        ttl: 60 * 60 * 24 * 30,
+      },
+    );
     return result.data;
   }
 
@@ -215,11 +245,90 @@ export class AiService {
       ),
     ).catch((error) => {
       if (error instanceof AxiosError) {
+        console.log('error', error);
         throw new InternalServerErrorException(
           'AI server Error: ' + error.message,
         );
       }
       throw new InternalServerErrorException();
+    });
+    return result.data;
+  }
+
+  async useModulizer({ allArticles }: ModulizerDto): Promise<Object> {
+    const cachedId = await this.getVector(allArticles);
+    if (cachedId.length !== 0) {
+      const cached = await this.redisService.get<string>(cachedId[0], {
+        prefix: 'modulizer',
+      });
+      if (cached) {
+        return JSON.parse(cached);
+      }
+    }
+    const result = await firstValueFrom(
+      this.httpService.post<Object>(
+        this.configSerivce.getOrThrow<string>('AI_SERVER_URL') + '/modulizer',
+        {
+          'all articles': allArticles,
+        },
+      ),
+    ).catch((error) => {
+      if (error instanceof AxiosError) {
+        throw new InternalServerErrorException(
+          'AI server Error: ' + error.message,
+        );
+      }
+      throw new InternalServerErrorException();
+    });
+    let id: string;
+    if (cachedId.length !== 0) {
+      id = cachedId[0];
+    } else {
+      id = uuid();
+      await this.setVector(id, allArticles);
+    }
+    await this.redisService.set<string>(id, JSON.stringify(result.data), {
+      prefix: 'modulizer',
+      ttl: 60 * 60 * 24 * 30,
+    });
+    return result.data;
+  }
+
+  async useliquifier({ snippets }: LiquidfierDto): Promise<Object> {
+    const cachedId = await this.getVector(snippets.join(' '));
+    if (cachedId.length !== 0) {
+      const cached = await this.redisService.get<string>(cachedId[0], {
+        prefix: 'liquifier',
+      });
+      if (cached) {
+        return JSON.parse(cached);
+      }
+    }
+    const result = await firstValueFrom(
+      this.httpService.post<Object>(
+        this.configSerivce.getOrThrow<string>('AI_SERVER_URL') + '/liquifier',
+        {
+          snippets,
+        },
+      ),
+    ).catch((error) => {
+      if (error instanceof AxiosError) {
+        throw new InternalServerErrorException(
+          'AI server Error: ' + error.message,
+        );
+      }
+      throw new InternalServerErrorException();
+    });
+    let id: string;
+    if (cachedId.length !== 0) {
+      id = cachedId[0];
+    } else {
+      id = uuid();
+      await this.setVector(id, snippets.join(' '));
+    }
+    await this.redisService.set<string>(id, JSON.stringify(result.data), {
+      prefix: 'liquifier',
+      ttl: 60 * 60 * 24 * 30,
     });
     return result.data;
   }

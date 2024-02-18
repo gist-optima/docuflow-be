@@ -9,6 +9,16 @@ export type ProjectIncludeAllType = Prisma.ProjectGetPayload<{
         name: true;
       };
     };
-    Version: true;
+    PullRequest: true;
+    Version: {
+      include: {
+        child: {
+          select: { id: true };
+        };
+        mergeChild: {
+          select: { id: true };
+        };
+      };
+    };
   };
 }>;

@@ -26,6 +26,7 @@ import { SnippetDto } from './dto/req/snippet.dto';
 import { FullVersionWithRecursiveContainer } from './types/fullVersion.type';
 import { CreateVersionDto } from './dto/req/createVersion.dto';
 import { Container } from '@prisma/client';
+import { DiffRecursiveContainer } from './types/fullContainer.type';
 
 @ApiTags('version')
 @ApiBearerAuth()
@@ -79,8 +80,41 @@ export class VersionController {
   })
   @ApiResponse({ status: 201, description: 'OK' })
   @Post(':versionId/merge')
-  async mergeVersion(): Promise<void> {
-    return;
+  async mergeVersion(
+    @Param('projectId', ParseIntPipe) projectId: number,
+    @Param('versionId', ParseIntPipe) versionId: number,
+    @Query('mergeParentId', ParseIntPipe) mergeParentId: number,
+    @GetUser() user: UserInfo,
+  ): Promise<void> {
+    return this.versionService.mergeVersion(
+      projectId,
+      versionId,
+      mergeParentId,
+      user,
+    );
+  }
+
+  @ApiOperation({
+    summary: 'Create diff',
+    description:
+      '현재 버전과 다른 버전을 비교한다. 이때 비교를 하면 200을 반환한다.',
+  })
+  @ApiResponse({ status: 200, description: 'OK' })
+  @Post(':versionId/diff/container/:containerId')
+  async getDiff(
+    @Param('projectId', ParseIntPipe) projectId: number,
+    @Param('versionId', ParseIntPipe) versionId: number,
+    @Query('diffVersionId', ParseIntPipe) diffVersionId: number,
+    @Param('containerId', ParseIntPipe) containerId: number,
+    @GetUser() user: UserInfo,
+  ): Promise<DiffRecursiveContainer> {
+    return this.versionService.getDiffContainer(
+      projectId,
+      versionId,
+      diffVersionId,
+      containerId,
+      user,
+    );
   }
 
   @ApiOperation({

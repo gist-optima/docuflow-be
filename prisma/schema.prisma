@@ -30,14 +30,16 @@ model Project {
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
 
-  users   User[]    @relation("user_projects")
-  Version Version[]
+  users       User[]        @relation("user_projects")
+  Version     Version[]
+  PullRequest PullRequest[]
 
   @@map("project")
 }
 
 model Version {
   id          Int      @id @default(autoincrement())
+  tag         String   @default("main")
   description String
   isCommited  Boolean  @default(false) @map("is_commited")
   createdAt   DateTime @default(now()) @map("created_at")
@@ -58,6 +60,22 @@ model Version {
   firstLayerSnippet   Snippet[]   @relation("first_layer_snippet")
 
   @@map("version")
+}
+
+model PullRequest {
+  id          Int      @id @default(autoincrement())
+  title       String
+  description String
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  fromTag String @map("from_tag")
+  toTag   String @map("to_tag")
+
+  projectId Int     @map("project_id")
+  project   Project @relation(fields: [projectId], references: [id])
+
+  @@map("pull_request")
 }
 
 model Container {
