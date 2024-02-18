@@ -1,7 +1,7 @@
 import { ForbiddenException, Injectable } from '@nestjs/common';
 import { ProjectRepository } from './project.repository';
 import { UserInfo } from 'src/user/types/userInfo.type';
-import { Project } from '@prisma/client';
+import { Project, PullRequest } from '@prisma/client';
 import { CreateProjectDto } from './dto/req/createProject.dto';
 import { AddUserToProjectDto } from './dto/req/addUserToProject.dto';
 import { ProjectIncludeAllType } from './types/projectIncludeAll.type';
@@ -20,6 +20,14 @@ export class ProjectService {
     userInfo: UserInfo,
   ): Promise<ProjectIncludeAllType> {
     return this.projectRepository.getProjectById(projectId, userInfo.id);
+  }
+
+  async getPR(
+    projectId: number,
+    pullRequestId: number,
+    userInfo: UserInfo,
+  ): Promise<PullRequest> {
+    return this.projectRepository.getPR(projectId, pullRequestId, userInfo.id);
   }
 
   async createProject(

@@ -29,6 +29,30 @@ export class ProjectRepository {
       });
   }
 
+  async getPR(
+    projectId: number,
+    pullrequestId: number,
+    userId: number,
+  ): Promise<PullRequest> {
+    return this.prismaService.pullRequest
+      .findUniqueOrThrow({
+        where: {
+          id: pullrequestId,
+          project: {
+            id: projectId,
+            users: {
+              some: {
+                id: userId,
+              },
+            },
+          },
+        },
+      })
+      .catch((error) => {
+        throw new InternalServerErrorException();
+      });
+  }
+
   async getProjectById(
     id: number,
     userId: number,

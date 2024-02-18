@@ -26,6 +26,7 @@ import {
 import { ProjectIncludeAll } from './dto/res/projectIncludeAll.dto';
 import { ProjectReturn } from './dto/res/projectReturn.dto';
 import { CreatePRDto } from './dto/req/createPR.dto';
+import { PullRequest } from '@prisma/client';
 
 @ApiTags('project')
 @ApiBearerAuth()
@@ -127,5 +128,16 @@ export class ProjectController {
     @GetUser() userInfo: UserInfo,
   ): Promise<void> {
     return this.projectService.createPR(projectId, dto, userInfo);
+  }
+
+  @ApiResponse({ status: 200, description: 'OK' })
+  @ApiForbiddenResponse({ description: '유저의 권한이 없음' })
+  @Get('/:projectId/pullrequest/:prId')
+  async getPR(
+    @Param('projectId', ParseIntPipe) projectId: number,
+    @Param('prId', ParseIntPipe) prId: number,
+    @GetUser() userInfo: UserInfo,
+  ): Promise<PullRequest> {
+    return this.projectService.getPR(projectId, prId, userInfo);
   }
 }
