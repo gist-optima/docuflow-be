@@ -18,6 +18,7 @@ import { RegenerateQueryDto } from './dto/req/regenerateQuery.dto';
 import { ExtractSnippetDto } from './dto/req/extractSnippet.dto';
 import { ModulizerDto } from './dto/req/modulizer.dto';
 import { LiquidfierDto } from './dto/req/liquifier.dto';
+import { SemanticDiffDto } from './dto/req/semanticDiff.dto';
 
 @ApiTags('ai')
 @Controller('ai')
@@ -69,5 +70,11 @@ export class AiController {
   @Post('liquifier')
   async liquifier(@Body() body: LiquidfierDto): Promise<Object> {
     return this.aiService.useliquifier(body);
+  }
+
+  @ApiBearerAuth()
+  @Post('semantic-diff')
+  async semanticDiff(@Body() body: SemanticDiffDto): Promise<Object> {
+    return this.aiService.useSemanticDiff(body);
   }
 }

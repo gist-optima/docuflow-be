@@ -10,6 +10,7 @@ import { RedisService } from 'src/redis/redis.service';
 import { ExtractSnippetDto } from './dto/req/extractSnippet.dto';
 import { ModulizerDto } from './dto/req/modulizer.dto';
 import { LiquidfierDto } from './dto/req/liquifier.dto';
+import { SemanticDiffDto } from './dto/req/semanticDiff.dto';
 
 @Injectable()
 export class AiService {
@@ -329,6 +330,27 @@ export class AiService {
     await this.redisService.set<string>(id, JSON.stringify(result.data), {
       prefix: 'liquifier',
       ttl: 60 * 60 * 24 * 30,
+    });
+    return result.data;
+  }
+
+  async useSemanticDiff({ before, after }: SemanticDiffDto): Promise<Object> {
+    const result = await firstValueFrom(
+      this.httpService.post<Object>(
+        this.configSerivce.getOrThrow<string>('AI_SERVER_URL') +
+          '/semantic-diff',
+        {
+          before,
+          after,
+        },
+      ),
+    ).catch((error) => {
+      if (error instanceof AxiosError) {
+        throw new InternalServerErrorException(
+          'AI server Error: ' + error.message,
+        );
+      }
+      throw new InternalServerErrorException();
     });
     return result.data;
   }
