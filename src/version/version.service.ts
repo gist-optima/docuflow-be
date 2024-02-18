@@ -10,6 +10,7 @@ import { CreateVersionDto } from './dto/req/createVersion.dto';
 import { ContainerDto } from './dto/req/container.dto';
 import { SnippetDto } from './dto/req/snippet.dto';
 import { Container, Version } from '@prisma/client';
+import { firstValueFrom, from, groupBy, mergeMap, toArray } from 'rxjs';
 
 @Injectable()
 export class VersionService {
@@ -164,28 +165,46 @@ export class VersionService {
       containerId,
       mergeVersionId,
     );
-    const allChild = [
-      ...new Set([...container.child, ...mergeContainer.child]),
-    ];
-    const allSnippet = [
-      ...new Set([
-        ...container.Snippet.map(({ ...all }) => ({
-          ...all,
-          version: versionId,
-        })),
-        ...mergeContainer.Snippet.map(({ ...all }) => ({
-          ...all,
-          version: mergeVersionId,
-        })),
-      ]),
-    ];
-    const completeChild = allChild.map(({ id }) => {
+    const mergedContainer = (
+      await firstValueFrom(
+        from(container.child.concat(mergeContainer.child)).pipe(
+          groupBy(({ id }) => id),
+          mergeMap((group) => group.pipe(toArray())),
+          toArray(),
+        ),
+      )
+    ).map((list) => {
+      return list[0];
+    });
+
+    const mergedSnippet = (
+      await firstValueFrom(
+        from(
+          container.Snippet.map(({ ...rest }) => ({
+            ...rest,
+            version: versionId,
+          })).concat(
+            mergeContainer.Snippet.map(({ ...rest }) => ({
+              ...rest,
+              version: versionId,
+            })),
+          ),
+        ).pipe(
+          groupBy(({ indicator }) => indicator),
+          mergeMap((group) => group.pipe(toArray())),
+          toArray(),
+        ),
+      )
+    ).map((list) => {
+      return list[0];
+    });
+    const completeChild = mergedContainer.map(({ id }) => {
       return this.diffContainer(versionId, mergeVersionId, id);
     });
     return {
       ...container,
       child: await Promise.all(completeChild),
-      Snippet: allSnippet,
+      Snippet: mergedSnippet,
     };
   }
 
